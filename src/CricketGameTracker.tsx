@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./CricketGameTracker.css";
 import ConfirmDialog from "./components/ConfirmDialog";
+import { BoundaryIcon, WicketIcon } from "./components/CricketIcons";
 
 interface Ball {
   runs: number;
@@ -9,6 +10,8 @@ interface Ball {
     type: "wide" | "noBall" | "byes" | "legByes";
     runs: number;
   };
+  numberOfBall: number;
+  numberOfOver: number;
 }
 
 interface Score {
@@ -49,6 +52,7 @@ const CricketGameTracker: React.FC = () => {
     return savedLogs ? JSON.parse(savedLogs) : [];
   });
   const [showLogsDialog, setShowLogsDialog] = useState(false);
+  const [showOversDialog, setShowOversDialog] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("cricketScore", JSON.stringify(score));
@@ -63,18 +67,37 @@ const CricketGameTracker: React.FC = () => {
     isWicket: boolean = false,
     extras?: Ball["extras"]
   ) => {
-    const newBall: Ball = { runs, isWicket, extras };
-    setScore((prev) => ({
-      runs: prev.runs + runs + (extras?.runs || 0),
-      wickets: prev.wickets + (isWicket ? 1 : 0),
-      overs: extras
+    const newBall: Ball = {
+      runs,
+      isWicket,
+      extras,
+      numberOfBall: score.balls,
+      numberOfOver: score.overs,
+    };
+    setScore((prev) => {
+      const ovr = extras
         ? prev.overs
         : prev.balls + 1 === 6
         ? prev.overs + 1
-        : prev.overs,
-      balls: extras ? prev.balls : prev.balls + 1 === 6 ? 0 : prev.balls + 1,
-      ballHistory: [...prev.ballHistory, newBall],
-    }));
+        : prev.overs;
+
+      const lastBallBall =
+        (prev.ballHistory || [])?.length > 0
+          ? prev.ballHistory[prev.ballHistory?.length - 1].numberOfBall
+          : 0;
+
+      const numberOfBall = lastBallBall + 1;
+      return {
+        runs: prev.runs + runs + (extras?.runs || 0),
+        wickets: prev.wickets + (isWicket ? 1 : 0),
+        overs: ovr,
+        balls: extras ? prev.balls : prev.balls + 1 === 6 ? 0 : prev.balls + 1,
+        ballHistory: [
+          ...prev.ballHistory,
+          { ...newBall, numberOfBall: numberOfBall, numberOfOver: prev.overs },
+        ],
+      };
+    });
     setIsNoBall(false);
   };
 
@@ -140,22 +163,64 @@ const CricketGameTracker: React.FC = () => {
     setInningsLogs((prev) => prev.filter((log) => log.timestamp !== timestamp));
   };
 
+  const getOversHistory = () => {
+    const oversMap = new Map<number, Ball[]>();
+
+    score.ballHistory.forEach((ball) => {
+      const over = ball.numberOfOver;
+      if (!oversMap.has(over)) {
+        oversMap.set(over, []);
+      }
+      oversMap.get(over)?.push(ball);
+    });
+
+    return Array.from(oversMap.entries()).sort(([a], [b]) => b - a); // Sort overs in descending order
+  };
+
   return (
     <div className="cricket-tracker">
       <div className="ball-history">
-        <div className="history-list">
-          {score.ballHistory.map((ball, index) => (
-            <div
-              key={index}
-              className={`ball-item ${
-                ball.extras?.type === "noBall" ? "no-ball" : ""
-              }`}
-            >
-              {ball.runs}
-              {ball.isWicket ? "W" : ""}
-              {ball.extras ? `(${ball.extras.type})` : ""}
-            </div>
-          ))}
+        <div className="">
+          <div className="history-list">
+            <div className="ball-item-over">{score.overs + 1}</div>
+            {score.ballHistory
+              ?.filter((a) => {
+                if (score.overs === 0) {
+                  return true;
+                }
+                return a.numberOfOver === score.overs;
+              })
+              ?.sort((a, b) => {
+                return b.numberOfBall - a.numberOfBall;
+              })
+              .map((ball, index) => {
+                if (ball.extras?.type === "wide") {
+                  return (
+                    <div key={index} className={`ball-item`}>
+                      WIDE
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    key={index}
+                    className={`ball-item ${
+                      ball.extras?.type === "noBall" ? "no-ball" : ""
+                    } ${ball.runs === 4 || ball.runs === 6 ? "boundary" : ""} ${
+                      ball.isWicket ? "wicket" : ""
+                    }`}
+                  >
+                    {ball.runs}
+                    {ball.isWicket ? (
+                      <WicketIcon className="wicket-icon" />
+                    ) : ball.runs === 4 || ball.runs === 6 ? (
+                      <BoundaryIcon className="boundary-icon" />
+                    ) : null}
+                    {ball.extras ? `(${ball.extras.type})` : ""}
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </div>
 
@@ -165,6 +230,18 @@ const CricketGameTracker: React.FC = () => {
         </h2>
         <h3>
           Overs: {score.overs}.{score.balls}
+          {/* add icon to show all overs  */}
+          <a
+            onClick={() => setShowOversDialog(true)}
+            style={{
+              cursor: "pointer",
+              color: "white",
+              textDecoration: "underline",
+            }}
+          >
+            {" "}
+            Order History{" "}
+          </a>
         </h3>
       </div>
 
@@ -271,6 +348,53 @@ const CricketGameTracker: React.FC = () => {
             </div>
             <button
               onClick={() => setShowLogsDialog(false)}
+              className="close-button"
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
+
+      {showOversDialog && (
+        <>
+          <div
+            className="dialog-overlay"
+            onClick={() => setShowOversDialog(false)}
+          />
+          <div className="overs-dialog">
+            <h3>Overs History</h3>
+            <div className="overs-list">
+              {getOversHistory().map(([over, balls]) => (
+                <div key={over} className="over-item">
+                  <div className="over-header">Over {over + 1}</div>
+                  <div className="over-balls">
+                    {balls
+                      .sort((a, b) => a.numberOfBall - b.numberOfBall)
+                      .map((ball, index) => (
+                        <div
+                          key={index}
+                          className={`ball-item ${
+                            ball.extras?.type === "noBall" ? "no-ball" : ""
+                          } ${
+                            ball.runs === 4 || ball.runs === 6 ? "boundary" : ""
+                          } ${ball.isWicket ? "wicket" : ""}`}
+                        >
+                          {ball.runs}
+                          {ball.isWicket ? (
+                            <WicketIcon className="wicket-icon" />
+                          ) : ball.runs === 4 || ball.runs === 6 ? (
+                            <BoundaryIcon className="boundary-icon" />
+                          ) : null}
+                          {ball.extras ? `(${ball.extras.type})` : ""}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowOversDialog(false)}
               className="close-button"
             >
               Close

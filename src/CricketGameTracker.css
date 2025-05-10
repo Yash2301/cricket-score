@@ -51,9 +51,7 @@
 .special-buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
   padding: 10px;
-  margin-top: 15px;
 }
 
 button {
@@ -147,24 +145,107 @@ button {
   font-weight: 600;
   font-size: 1.1em;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-/* Special styling for Wide and No Ball in history */
-.ball-item.wide {
-  background-color: #9b59b6;
+/* Add styles for boundary and wicket */
+.ball-item.boundary {
+  background-color: #e67e22;
+  animation: boundaryPulse 0.5s ease-in-out;
 }
 
+.ball-item.wicket {
+  background-color: #e74c3c;
+  animation: wicketShake 0.5s ease-in-out;
+}
+
+/* Icon styles */
+.boundary-icon {
+  color: #fff;
+  animation: boundaryIconPulse 1s infinite;
+}
+
+.wicket-icon {
+  color: #fff;
+  animation: wicketIconShake 0.5s ease-in-out;
+}
+
+/* Animations */
+@keyframes boundaryPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wicketShake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes boundaryIconPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wicketIconShake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Update no-ball style to work with new classes */
 .ball-item.no-ball {
   background-color: #2ecc71;
+}
+
+/* Add hover effects */
+.ball-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ball-item.boundary:hover {
+  background-color: #d35400;
+}
+
+.ball-item.wicket:hover {
+  background-color: #c0392b;
 }
 
 /* Undo button styling */
 .undo-button {
   background-color: #e74c3c;
   width: 100%;
-  margin-top: 15px;
-  padding: 12px;
   font-size: 1.2em;
   border-radius: 15px;
 }
@@ -236,20 +317,22 @@ button.active {
 /* Keep the original ball history styling */
 .ball-history {
   background-color: #f8f9fa;
-  padding: 15px;
+  padding: 5px;
   border-radius: 12px;
   border: 1px solid #e9ecef;
-  margin-bottom: 25px;
+  margin-bottom: 5px;
   width: 100%;
 }
 
 .history-list {
   display: flex;
-  overflow-x: auto;
-  padding: 10px 5px;
-  gap: 10px;
+  flex-wrap: wrap;
+  padding: 5px 5px;
+  gap: 5px;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  min-height: 50px;
+  width: 550px;
 }
 
 .ball-item {
@@ -265,6 +348,16 @@ button.active {
 
 .ball-item.no-ball {
   background-color: #2ecc71;
+}
+.ball-item-over {
+  background-color: black;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 25px;
+  min-width: fit-content;
+  font-weight: 600;
+  font-size: 1.1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Updated styling for the buttons and controls */
@@ -314,7 +407,6 @@ button.active {
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   padding: 10px;
-  margin-top: 15px;
 }
 
 /* Wide button styling */
