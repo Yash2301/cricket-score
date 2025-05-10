@@ -363,11 +363,30 @@ const CricketGameTracker: React.FC = () => {
             onClick={() => setShowOversDialog(false)}
           />
           <div className="overs-dialog">
-            <h3>Overs History</h3>
+            <div className="overs-dialog-header">
+              <h3>Overs History</h3>
+              <button
+                onClick={() => setShowOversDialog(false)}
+                className="close-dialog-button"
+              >
+                ×
+              </button>
+            </div>
             <div className="overs-list">
               {getOversHistory().map(([over, balls]) => (
                 <div key={over} className="over-item">
-                  <div className="over-header">Over {over + 1}</div>
+                  <div className="over-header">
+                    <span className="over-number">Over {over + 1}</span>
+                    <span className="over-summary">
+                      {balls.reduce(
+                        (sum, ball) =>
+                          sum + ball.runs + (ball.extras?.runs || 0),
+                        0
+                      )}{" "}
+                      runs
+                      {balls.some((ball) => ball.isWicket) && " • Wicket"}
+                    </span>
+                  </div>
                   <div className="over-balls">
                     {balls
                       .sort((a, b) => a.numberOfBall - b.numberOfBall)
@@ -393,12 +412,6 @@ const CricketGameTracker: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button
-              onClick={() => setShowOversDialog(false)}
-              className="close-button"
-            >
-              Close
-            </button>
           </div>
         </>
       )}
