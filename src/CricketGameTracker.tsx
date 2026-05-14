@@ -623,37 +623,34 @@ const CricketGameTracker: React.FC = () => {
           ))}
         </div>
         <div className="special-buttons">
-          <button onClick={() => handleBall(0, true)} disabled={isNoBall || innings1Done || innings2Done}>Wicket</button>
-          <button onClick={() => handleBall(0, false, { type: "wide", runs: 1 })} disabled={isNoBall || innings1Done || innings2Done}>Wide</button>
+          <button className="wicket-button" onClick={() => handleBall(0, true)} disabled={isNoBall || innings1Done || innings2Done}>🎯 Wicket</button>
+          <button className="wide-button" onClick={() => handleBall(0, false, { type: "wide", runs: 1 })} disabled={isNoBall || innings1Done || innings2Done}>↔ Wide</button>
           <button
             onClick={() => { setIsNoBall(true); handleBall(0, false, { type: "noBall", runs: 1 }); }}
             className="no-ball-button"
             disabled={isNoBall || innings1Done || innings2Done}
           >
-            No Ball
+            ⚡ No Ball
           </button>
           <button onClick={() => setShowRunOutDialog(true)} className="run-out-button" disabled={isNoBall || innings1Done || innings2Done}>
-            Run Out
+            🏃 Run Out
           </button>
         </div>
       </div>
 
-      <div className="action-buttons">
-        <button onClick={undoLastBall} className="undo-button" disabled={score.ballHistory.length === 0}>
-          Undo Last Ball
-        </button>
-      </div>
-
       <div className="innings-buttons">
+        <button onClick={undoLastBall} className="undo-button" disabled={score.ballHistory.length === 0}>
+          ↩ Undo
+        </button>
         <button
           onClick={() => setShowEndInningsDialog(true)}
           className="save-innings-button"
           disabled={phase === "innings1" && score.ballHistory.length === 0}
         >
-          {phase === "innings1" ? "End Innings" : "End Match"}
+          {phase === "innings1" ? "End Inn." : "End Match"}
         </button>
-        <button onClick={() => setShowLogsDialog(true)} className="view-logs-button">View Logs</button>
-        <button onClick={() => setShowConfirmDialog(true)} className="clear-button">Clear All</button>
+        <button onClick={() => setShowLogsDialog(true)} className="view-logs-button">Logs</button>
+        <button onClick={() => setShowConfirmDialog(true)} className="clear-button">Clear</button>
       </div>
 
       {/* ── Logs dialog ── */}
